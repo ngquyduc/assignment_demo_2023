@@ -3,30 +3,40 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
-	"github.com/TikTokTechImmersion/assignment_demo_2023/http-server/kitex_gen/rpc"
-	"github.com/TikTokTechImmersion/assignment_demo_2023/http-server/kitex_gen/rpc/imservice"
-	"github.com/TikTokTechImmersion/assignment_demo_2023/http-server/proto_gen/api"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/utils"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/cloudwego/kitex/client"
 	etcd "github.com/kitex-contrib/registry-etcd"
+	"github.com/ngquyduc/assignment_demo_2023/http-server/kitex_gen/rpc"
+	"github.com/ngquyduc/assignment_demo_2023/http-server/kitex_gen/rpc/imservice"
+	"github.com/ngquyduc/assignment_demo_2023/http-server/proto_gen/api"
 )
 
 var cli imservice.Client
 
 func main() {
-	r, err := etcd.NewEtcdResolver([]string{"etcd:2379"})
+	var link, port string
+	if os.Getenv("ENV") == "PROD" {
+		link = "etcd:2379"
+		port = "rpc-server:8888"
+	} else {
+		link = "127.0.0.1:2379"
+		port = "127.0.0.1:8888"
+	}
+	log.Println("link:", link)
+	r, err := etcd.NewEtcdResolver([]string{link})
 	if err != nil {
 		log.Fatal(err)
 	}
 	cli = imservice.MustNewClient("demo.rpc.server",
 		client.WithResolver(r),
 		client.WithRPCTimeout(1*time.Second),
-		client.WithHostPorts("rpc-server:8888"),
+		client.WithHostPorts(port),
 	)
 
 	h := server.Default(server.WithHostPorts("0.0.0.0:8080"))
@@ -60,7 +70,7 @@ func sendMessage(ctx context.Context, c *app.RequestContext) {
 	} else if resp.Code != 0 {
 		c.String(consts.StatusInternalServerError, resp.Msg)
 	} else {
-		c.Status(consts.StatusOK)
+		c.String(consts.StatusCreated, "ok")
 	}
 }
 

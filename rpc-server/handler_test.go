@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/TikTokTechImmersion/assignment_demo_2023/rpc-server/kitex_gen/rpc"
+	"github.com/ngquyduc/assignment_demo_2023/rpc-server/kitex_gen/rpc"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,13 @@ func TestIMServiceImpl_Send(t *testing.T) {
 			name: "success",
 			args: args{
 				ctx: context.Background(),
-				req: &rpc.SendRequest{},
+				req: &rpc.SendRequest{
+					Message: &rpc.Message{
+						Chat:   "a:b",
+						Text:   "hi",
+						Sender: "a",
+					},
+				},
 			},
 			wantErr: nil,
 		},
